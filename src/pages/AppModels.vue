@@ -6,7 +6,6 @@ import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
 import { createModel, deleteModel, updateModel } from "../services/api.service";
 import { getTimeAgo } from "../utils/timeAgo";
-import { PlayIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const datasetStore = useDatasetsStore();
 const modelStore = useModelsStore();
@@ -153,7 +152,7 @@ function openDelete(model: Model) {
             ><span style="text-transform: capitalize">{{ model.status }}</span>
           </div>
           <div class="card-buttons">
-            <button class="primary-btn">Go to playground</button>
+            <button class="primary-btn">Open playground</button>
             <button class="secondary-btn" @click.stop="openModel(model)">
               Update
             </button>
@@ -283,7 +282,7 @@ header {
   left: 50%;
   transform: translate(-50%, -50%);
   width: calc(100% - 3rem);
-  max-width: 600px;
+  max-width: 360px;
 }
 
 .delete-model-modal {

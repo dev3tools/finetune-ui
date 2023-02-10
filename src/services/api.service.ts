@@ -55,6 +55,7 @@ function fetchDatasets() {
 }
 
 function fetchModels() {
+  authorizedApi.get("/api/train/");
   return authorizedApi.get("/api/models/");
 }
 
