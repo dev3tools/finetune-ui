@@ -142,7 +142,9 @@ function handleCancel() {
           </div>
           <div>
             <span class="strong">Created: </span
-            >{{ getTimeAgo(new Date(dataset.created)) }}
+            ><span style="text-transform: capitalize">{{
+              getTimeAgo(new Date(dataset.created))
+            }}</span>
           </div>
           <div>
             <span class="strong">Status: </span
@@ -156,93 +158,96 @@ function handleCancel() {
     <Transition name="fade" mode="in-out">
       <div v-if="openCreateModal" class="overlay-container">
         <div class="overlay"></div>
-        <div class="create-dataset-modal">
-          <h3>Create a new dataset</h3>
-          <form class="form" @submit.prevent="handleSubmit">
-            <div class="form-group">
-              <label for="file">File (.csv, .xls, .xlsx)</label>
-              <input
-                id="file"
-                type="file"
-                placeholder=".csv, .xls, .xlsx"
-                accept=".csv, .xls, .xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-                @change="handleFileChange"
-              />
-            </div>
-            <div class="form-group">
-              <label for="value">Dataset Name</label>
-              <input
-                id="name"
-                placeholder="Eg: My First Dataset."
-                v-model="inputs.name"
-              />
-            </div>
-            <div class="form-group">
-              <label>Column Mapping</label>
-              <div v-if="csvHeadings.length" class="heading-options">
-                <div
-                  class="mapping"
-                  v-for="(heading, index) in csvHeadings"
-                  :key="heading"
-                  @click.stop="appendToPrompt(`##${index}##`)"
-                >
-                  <span class="column-name">{{ heading }}</span
-                  >:
-                  <span class="mapping-id">##{{ index }}##</span>
+        <div class="overlay-content">
+          <div class="create-dataset-modal">
+            <h3>Create a new dataset</h3>
+            <form class="form" @submit.prevent="handleSubmit">
+              <div class="form-group">
+                <label for="file">File (.csv, .xls, .xlsx)</label>
+                <input
+                  id="file"
+                  type="file"
+                  placeholder=".csv, .xls, .xlsx"
+                  accept=".csv, .xls, .xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                  @change="handleFileChange"
+                />
+              </div>
+              <div class="form-group">
+                <label for="value">Dataset Name</label>
+                <input
+                  id="name"
+                  placeholder="Eg: My First Dataset."
+                  v-model="inputs.name"
+                />
+              </div>
+              <div class="form-group">
+                <label>Column Mapping</label>
+                <div v-if="csvHeadings.length" class="heading-options">
+                  <div
+                    class="mapping"
+                    v-for="(heading, index) in csvHeadings"
+                    :key="heading"
+                    @click.stop="appendToPrompt(`##${index}##`)"
+                  >
+                    <span class="column-name">{{ heading }}</span
+                    >:
+                    <span class="mapping-id">##{{ index }}##</span>
+                  </div>
+                </div>
+                <div v-else class="no-mapping">
+                  Upload a CSV to get column mapping
                 </div>
               </div>
-              <div v-else class="no-mapping">
-                Upload a CSV to get column mapping
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="prompt">Input Prompt</label>
-              <textarea
-                id="prompt"
-                placeholder="Eg: If a prompt has ##0## and ##1##..."
-                rows="5"
-                v-model="inputs.prompt"
-              ></textarea>
-            </div>
-            <div class="form-group">
-              <label for="value">Output Value</label>
-              <input
-                id="value"
-                placeholder="Eg: The Value is ##2##."
-                v-model="inputs.value"
-              />
-            </div>
-            <div class="numbers">
               <div class="form-group">
-                <label for="start">Start from (Optional)</label>
-                <input
-                  id="start"
-                  type="number"
-                  placeholder="Line number from where data should be read"
-                  v-model="inputs.startLine"
-                />
+                <label for="prompt">Input Prompt</label>
+                <textarea
+                  id="prompt"
+                  placeholder="Eg: If a prompt has ##0## and ##1##..."
+                  rows="3"
+                  v-model="inputs.prompt"
+                ></textarea>
               </div>
               <div class="form-group">
-                <label for="end">End (Optional)</label>
-                <input
-                  id="end"
-                  type="number"
-                  placeholder="Line number till where data should be read"
-                  v-model="inputs.endLine"
-                />
+                <label for="value">Output Value</label>
+                <textarea
+                  id="prompt"
+                  placeholder="Eg: The Value is ##2##."
+                  rows="3"
+                  v-model="inputs.value"
+                ></textarea>
               </div>
-            </div>
-            <div class="buttons">
-              <button
-                class="secondary-btn"
-                type="button"
-                @click.stop="handleCancel"
-              >
-                Cancel
-              </button>
-              <button class="primary-btn" type="submit">Create</button>
-            </div>
-          </form>
+              <div class="numbers">
+                <div class="form-group">
+                  <label for="start">Start from (Optional)</label>
+                  <input
+                    id="start"
+                    type="number"
+                    placeholder="Line number from where data should be read"
+                    v-model="inputs.startLine"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="end">End (Optional)</label>
+                  <input
+                    id="end"
+                    type="number"
+                    placeholder="Line number till where data should be read"
+                    v-model="inputs.endLine"
+                  />
+                </div>
+              </div>
+              <div class="buttons">
+                <button
+                  class="secondary-btn"
+                  type="button"
+                  @click.stop="handleCancel"
+                >
+                  Cancel
+                </button>
+                <button class="primary-btn" type="submit">Create</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </Transition>
@@ -291,16 +296,13 @@ header {
 }
 
 .create-dataset-modal {
-  position: absolute;
-  z-index: 2;
   background: #f5f5f5;
   border-radius: 20px;
   padding: 2rem;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: calc(100% - 3rem);
   max-width: 600px;
+  overflow-y: auto;
+  max-height: calc(100% - 4rem);
 }
 
 textarea {
@@ -392,6 +394,10 @@ a {
   .buttons {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .buttons button {
+    flex: unset;
   }
 }
 </style>

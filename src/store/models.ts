@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { fetchModels } from "../services/api.service";
+import { fetchModel, fetchModels } from "../services/api.service";
 
 type Model = {
   id: string;
@@ -28,6 +28,12 @@ export const useModelsStore = defineStore("models", {
             new Date(b.created).getTime() - new Date(a.created).getTime()
         );
         this.models = [...sortedModels];
+        this.models.forEach(async (model) => {
+          if (model.status === "pending") {
+            const newModel = (await fetchModel(model.id)).data;
+            model.status = newModel.status;
+          }
+        });
       }
     },
   },

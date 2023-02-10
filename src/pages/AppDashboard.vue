@@ -89,7 +89,7 @@ async function handleSave() {
         <div>
           <p class="user-identity" :title="user.email">
             <img :src="user.profileImage" />
-            {{ user.name }}
+            <span style="overflow: hidden; text-overflow: ellipsis;">{{ user.name }}</span>
           </p>
           <button class="logout-btn" @click.stop="handleLogout">
             <ArrowRightOnRectangleIcon class="icon" /> LOGOUT
@@ -103,6 +103,7 @@ async function handleSave() {
     <Transition name="fade" mode="in-out">
       <div v-if="openApiKeyModal" class="overlay-container">
         <div class="overlay"></div>
+        <div class="overlay-content">
         <div class="api-key-modal">
           <p style="display: flex; flex-direction: column; gap: 0.5rem">
             <h3>Enter OpenAI API key to continue</h3>
@@ -120,6 +121,7 @@ async function handleSave() {
             />
             <button class="primary-btn" style="width: 6rem; align-self: center;">Save</button>
           </form>
+        </div>
         </div>
       </div>
     </Transition>
@@ -187,16 +189,13 @@ async function handleSave() {
 }
 
 .api-key-modal {
-  position: absolute;
-  z-index: 2;
   background: #f5f5f5;
   border-radius: 20px;
   padding: 2rem;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: calc(100% - 3rem);
   max-width: 360px;
+  overflow-y: auto;
+  max-height: calc(100% - 4rem);
 }
 
 .sidebar ul li {

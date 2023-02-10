@@ -4,8 +4,14 @@ import { useDatasetsStore } from "../store/datasets";
 import { useModelsStore, type Model } from "../store/models";
 import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
-import { createModel, deleteModel, updateModel } from "../services/api.service";
+import {
+  ask,
+  createModel,
+  deleteModel,
+  updateModel,
+} from "../services/api.service";
 import { getTimeAgo } from "../utils/timeAgo";
+import { XMarkIcon } from "@heroicons/vue/24/outline";
 
 const datasetStore = useDatasetsStore();
 const modelStore = useModelsStore();
@@ -13,11 +19,16 @@ const modelName = ref("");
 const openCreateModal = ref(false);
 const openUpdateModal = ref(false);
 const openDeleteModal = ref(false);
+const openPlaygroundModal = ref(false);
 const selectedDataset = ref("");
 const selectedModel: Ref<Model | null> = ref(null);
 const loader = useLoaderStore();
-
 const models = computed(() => modelStore.models);
+const playground = ref({
+  question: "",
+  answer: "",
+  placeholder: "Answer to you question will show up here",
+});
 
 onBeforeMount(() => {
   modelStore.fetchModels();
@@ -113,6 +124,53 @@ function openDelete(model: Model) {
   selectedModel.value = model;
   openDeleteModal.value = true;
 }
+
+function openPlayground(model: Model) {
+  selectedModel.value = model;
+  openPlaygroundModal.value = true;
+}
+
+function clearFields() {
+  playground.value = {
+    question: "",
+    answer: "",
+    placeholder: "Answer to you question will show up here",
+  };
+}
+
+async function handlePlaygroundSubmit() {
+  if (!playground.value.question?.trim().length) {
+    return toast.error("Please enter the question to continue");
+  }
+  playground.value.placeholder = "Loading";
+  const loadingInterval = setInterval(() => {
+    if (playground.value.placeholder.endsWith("....")) {
+      playground.value.placeholder = "Loading";
+    }
+    playground.value.placeholder += ".";
+  }, 1000);
+  try {
+    playground.value.answer = (
+      await ask(
+        (selectedModel.value as Model).openai_id,
+        playground.value.question
+      )
+    ).data;
+  } catch (e) {
+    toast.error(
+      "Error occured while processing your request. Check your model's status and try again"
+    );
+  } finally {
+    clearInterval(loadingInterval);
+    playground.value.placeholder = "Answer to you question will show up here";
+  }
+}
+
+function closePlayground() {
+  clearFields();
+  selectedModel.value = null;
+  openPlaygroundModal.value = false;
+}
 </script>
 
 <template>
@@ -145,14 +203,18 @@ function openDelete(model: Model) {
           </div>
           <div>
             <span class="strong">Created: </span
-            >{{ getTimeAgo(new Date(model.created)) }}
+            ><span style="text-transform: capitalize">{{
+              getTimeAgo(new Date(model.created))
+            }}</span>
           </div>
           <div>
             <span class="strong">Status: </span
             ><span style="text-transform: capitalize">{{ model.status }}</span>
           </div>
           <div class="card-buttons">
-            <button class="primary-btn">Open playground</button>
+            <button class="primary-btn" @click.stop="openPlayground(model)">
+              Open playground
+            </button>
             <button class="secondary-btn" @click.stop="openModel(model)">
               Update
             </button>
@@ -166,99 +228,160 @@ function openDelete(model: Model) {
     <Transition name="fade" mode="in-out">
       <div v-if="openCreateModal" class="overlay-container">
         <div class="overlay"></div>
-        <div class="create-model-modal">
-          <h3>Create a new model</h3>
-          <form class="form" @submit.prevent="handleSubmit">
-            <div class="form-group">
-              <label for="value">Model Name</label>
-              <input
-                id="name"
-                placeholder="Eg: My First Dataset."
-                v-model="modelName"
-              />
-            </div>
-            <div class="form-group">
-              <label>Dataset</label>
-              <select v-model="selectedDataset">
-                <option value="" disabled selected>Select a dataset</option>
-                <option
-                  v-for="dataset in datasetStore.datasets"
-                  :key="dataset.openai_id"
-                  :value="dataset.id"
+        <div class="overlay-content">
+          <div class="create-model-modal">
+            <h3>Create a new model</h3>
+            <form class="form" @submit.prevent="handleSubmit">
+              <div class="form-group">
+                <label for="value">Model Name</label>
+                <input
+                  id="name"
+                  placeholder="Eg: My First Dataset."
+                  v-model="modelName"
+                />
+              </div>
+              <div class="form-group">
+                <label>Dataset</label>
+                <select v-model="selectedDataset">
+                  <option value="" disabled selected>Select a dataset</option>
+                  <option
+                    v-for="dataset in datasetStore.datasets"
+                    :key="dataset.openai_id"
+                    :value="dataset.id"
+                  >
+                    {{ dataset.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="buttons">
+                <button
+                  class="secondary-btn"
+                  type="button"
+                  @click.stop="handleCreateCancel"
                 >
-                  {{ dataset.name }}
-                </option>
-              </select>
-            </div>
-            <div class="buttons">
-              <button
-                class="secondary-btn"
-                type="button"
-                @click.stop="handleCreateCancel"
-              >
-                Cancel
-              </button>
-              <button class="primary-btn" type="submit">Create</button>
-            </div>
-          </form>
+                  Cancel
+                </button>
+                <button class="primary-btn" type="submit">Create</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </Transition>
     <Transition name="fade" mode="in-out">
       <div v-if="openUpdateModal" class="overlay-container">
         <div class="overlay"></div>
-        <div class="create-model-modal">
-          <h3>Model details</h3>
-          <form class="form" @submit.prevent="handleUpdate">
-            <div class="form-group">
-              <label for="value">Model Name</label>
-              <input
-                id="name"
-                placeholder="Eg: My First Dataset."
-                v-model="modelName"
-              />
-            </div>
-            <div class="form-group">
-              <label>Selected Dataset</label>
-              <input
-                id="dataset"
-                disabled
-                :value="getDataset((selectedModel as Model).dataset)"
-              />
-            </div>
-            <div class="buttons">
-              <button
-                class="secondary-btn"
-                type="button"
-                @click.stop="handleUpdateCancel"
-              >
-                Cancel
-              </button>
-              <button class="primary-btn" type="submit">Update</button>
-            </div>
-          </form>
+        <div class="overlay-content">
+          <div class="create-model-modal">
+            <h3>Model details</h3>
+            <form class="form" @submit.prevent="handleUpdate">
+              <div class="form-group">
+                <label for="value">Model Name</label>
+                <input
+                  id="name"
+                  placeholder="Eg: My First Dataset."
+                  v-model="modelName"
+                />
+              </div>
+              <div class="form-group">
+                <label>Selected Dataset</label>
+                <input
+                  id="dataset"
+                  disabled
+                  :value="getDataset((selectedModel as Model).dataset)"
+                />
+              </div>
+              <div class="buttons">
+                <button
+                  class="secondary-btn"
+                  type="button"
+                  @click.stop="handleUpdateCancel"
+                >
+                  Cancel
+                </button>
+                <button class="primary-btn" type="submit">Update</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </Transition>
     <Transition name="fade" mode="in-out">
       <div v-if="openDeleteModal" class="overlay-container">
         <div class="overlay"></div>
-        <div class="delete-model-modal">
-          <h3>Are you sure?</h3>
-          <p>This action will delete your existing modal</p>
-          <p>Model Name: {{ selectedModel?.name }}</p>
-          <form class="form" @submit.prevent="handleDelete">
-            <div class="buttons">
+        <div class="overlay-content">
+          <div class="create-model-modal">
+            <h3>Are you sure?</h3>
+            <p>This action will delete your existing model</p>
+            <p>Model Name: {{ selectedModel?.name }}</p>
+            <form class="form" @submit.prevent="handleDelete">
+              <div class="buttons">
+                <button
+                  class="secondary-btn"
+                  type="button"
+                  @click.stop="handleDeleteCancel"
+                >
+                  Cancel
+                </button>
+                <button class="primary-btn" type="submit">Delete</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </Transition>
+    <Transition name="fade" mode="in-out">
+      <div v-if="openPlaygroundModal" class="overlay-container">
+        <div class="overlay"></div>
+        <div class="overlay-content">
+          <div class="playground-modal">
+            <button
+              class="close-icon"
+              title="Close"
+              @click.stop="closePlayground"
+            >
+              <XMarkIcon style="width: 2rem" />
+            </button>
+            <h3>{{ selectedModel?.name }} Playground</h3>
+            <form class="chat-form" @submit.prevent="handlePlaygroundSubmit">
+              <div class="form-group" style="flex: 1">
+                <label for="prompt">Enter the question</label>
+                <textarea
+                  id="prompt"
+                  rows="5"
+                  placeholder="Enter the prompt to get answer"
+                  v-model="playground.question"
+                ></textarea>
+              </div>
+              <button
+                title="Send"
+                class="primary-btn"
+                style="align-self: end; width: 7.5rem"
+              >
+                Send
+              </button>
+            </form>
+            <div class="form-group" style="margin-top: 1rem">
+              <label for="value">Answer</label>
+              <textarea
+                disabled
+                id="value"
+                rows="5"
+                :placeholder="playground.placeholder"
+                v-model="playground.answer"
+              ></textarea>
+            </div>
+            <div style="margin-top: 1rem; display: flex; justify-content: end">
               <button
                 class="secondary-btn"
-                type="button"
-                @click.stop="handleDeleteCancel"
+                type="reset"
+                style="width: 7.5rem"
+                @click.stop="clearFields"
               >
-                Cancel
+                Clear
               </button>
-              <button class="primary-btn" type="submit">Delete</button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </Transition>
@@ -272,30 +395,50 @@ header {
   align-items: center;
 }
 
-.create-model-modal {
-  position: absolute;
-  z-index: 2;
-  background: #f5f5f5;
-  border-radius: 20px;
-  padding: 2rem;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: calc(100% - 3rem);
-  max-width: 360px;
+textarea {
+  resize: none;
 }
 
-.delete-model-modal {
-  position: absolute;
-  z-index: 2;
+.form-group * {
+  flex: unset;
+}
+
+.create-model-modal {
   background: #f5f5f5;
   border-radius: 20px;
   padding: 2rem;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: calc(100% - 3rem);
   max-width: 360px;
+  overflow-y: auto;
+  max-height: calc(100% - 4rem);
+}
+
+.close-icon {
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  box-shadow: none;
+  border: none;
+  background: none;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.playground-modal {
+  position: relative;
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 2rem;
+  width: calc(100% - 3rem);
+  max-width: 600px;
+  overflow-y: auto;
+  max-height: calc(100% - 4rem);
+}
+
+.chats {
+  height: 50vh;
+  background: #e1ebee;
+  border-radius: 10px;
 }
 
 .buttons {
@@ -373,10 +516,25 @@ h4 {
   font-size: 1.125rem;
 }
 
+.chat-form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.chat-form textarea {
+  flex: 1;
+}
+
 @media screen and (max-width: 768px) {
   .buttons {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .buttons button {
+    flex: unset;
   }
 }
 </style>
