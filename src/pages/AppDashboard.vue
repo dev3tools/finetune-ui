@@ -7,7 +7,7 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
-import { onBeforeMount, ref, onMounted } from "vue";
+import { onBeforeMount, ref } from "vue";
 import { useSettingsStore } from "../store/settings";
 import { useDatasetsStore } from "../store/datasets";
 import { useModelsStore } from "../store/models";
@@ -28,9 +28,6 @@ onBeforeMount(async () => {
     datasetStore.fetchDatasets(),
     modelStore.fetchModels(),
   ]);
-});
-
-onMounted(() => {
   if (!settings.openAiApiKey) {
     openApiKeyModal.value = true;
   }

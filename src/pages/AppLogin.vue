@@ -20,7 +20,7 @@ onBeforeUnmount(() => {
 });
 
 onMounted(() => {
-  google.accounts.id.initialize({
+  (google as any).accounts.id.initialize({
     client_id:
       "340742341613-ep6502depv329e40u9pa1nvsb5kk2iph.apps.googleusercontent.com",
     callback: handleSignIn,

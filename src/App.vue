@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { refreshAccessToken } from "./services/api.service";
 import { useLoaderStore } from "./store/loader.store";
 import { useUserStore } from "./store/user.store";
+import { startRefreshInterval } from "./utils/refreshToken";
 
 const loader = useLoaderStore();
 const user = useUserStore();
@@ -25,6 +26,7 @@ onBeforeMount(async () => {
       user.name = userProfile.name;
       user.profileImage = userProfile.profileImage;
       sessionStorage.setItem("access_token", data.accessToken);
+      startRefreshInterval(refreshToken);
       if (route.query.redirectTo) {
         router.replace(String(route.query.redirectTo));
       } else router.replace({ name: "Dashboard" });

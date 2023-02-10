@@ -71,10 +71,10 @@ async function handleSubmit() {
     value: inputs.value,
     name: inputs.name,
   };
-  if (inputs.startLine.trim().length) {
+  if (inputs.startLine) {
     data.startLine = inputs.startLine;
   }
-  if (inputs.endLine.trim().length) {
+  if (inputs.endLine) {
     data.endLine = inputs.endLine;
   }
   loader.show("Creating the dataset...");
