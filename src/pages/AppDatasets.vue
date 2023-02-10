@@ -52,6 +52,7 @@ function appendToPrompt(value: string) {
 }
 
 async function handleSubmit() {
+  console.log(csvFile.value);
   if (!csvFile.value) {
     return toast.error("Upload a valid CSV file to continue");
   }
@@ -119,9 +120,11 @@ async function handleSubmit() {
           class="dataset-card"
         >
           <h4>{{ dataset.name }}</h4>
-          <span><strong>OpenAI Id: </strong>{{ dataset.openai_id }}</span>
-          <span><strong>File: </strong>{{ dataset.file }}</span>
-          <span><strong>Status: </strong>{{ dataset.status }}</span>
+          <div>
+            <span class="strong">OpenAI Id: </span>{{ dataset.openai_id }}
+          </div>
+          <div><span class="strong">File: </span>{{ dataset.file }}</div>
+          <div><span class="strong">Status: </span>{{ dataset.status }}</div>
         </div>
       </div>
     </main>
@@ -207,6 +210,7 @@ async function handleSubmit() {
             <div class="buttons">
               <button
                 class="secondary-btn"
+                type="button"
                 @click.stop="openCreateModal = false"
               >
                 Cancel
@@ -242,12 +246,23 @@ header {
 }
 
 .dataset-card {
-  padding: 2rem;
+  padding: 1rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
   border-radius: 20px;
   border: 1px solid currentColor;
+}
+
+.strong {
+  font-weight: 500;
+}
+
+.dataset-card > div,
+.dataset-card > h4 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .create-dataset-modal {
