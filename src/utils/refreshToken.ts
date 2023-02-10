@@ -2,7 +2,7 @@ import { refreshAccessToken } from "../services/api.service";
 import { useUserStore } from "../store/user.store";
 import store from "../store";
 
-const refreshInterval = 15 * 60 * 60 * 1000 - 100;
+const refreshInterval = 5 * 60 * 60 * 1000 - 100;
 const user = useUserStore(store);
 
 export function startRefreshInterval(refreshToken: string) {

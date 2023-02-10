@@ -8,6 +8,8 @@ import {
 } from "../services/api.service";
 import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
+import { getTimeAgo } from "../utils/timeAgo";
+import { SquaresPlusIcon } from "@heroicons/vue/24/solid";
 
 const datasetStore = useDatasetsStore();
 const loader = useLoaderStore();
@@ -57,7 +59,7 @@ async function handleSubmit() {
     return toast.error("Upload a valid CSV file to continue");
   }
   if (!inputs.name.trim().length) {
-    return toast.error("Enter the name to continue");
+    return toast.error("Enter the dataset name to continue");
   }
   if (!inputs.prompt.trim().length) {
     return toast.error("Enter the prompt to continue");
@@ -91,10 +93,21 @@ async function handleSubmit() {
     csvHeadings.value = [];
     openCreateModal.value = false;
   } catch (e) {
-    toast.error("Something went wrong while creation of dataset. Try again");
+    toast.error("Something went wrong while creating the dataset. Try again");
   } finally {
     loader.hide();
   }
+}
+
+function handleCancel() {
+  inputs.prompt = "";
+  inputs.value = "";
+  inputs.startLine = "";
+  inputs.endLine = "";
+  inputs.name = "";
+  csvFile.value = null;
+  csvHeadings.value = [];
+  openCreateModal.value = false;
 }
 </script>
 
@@ -124,7 +137,16 @@ async function handleSubmit() {
             <span class="strong">OpenAI Id: </span>{{ dataset.openai_id }}
           </div>
           <div><span class="strong">File: </span>{{ dataset.file }}</div>
-          <div><span class="strong">Status: </span>{{ dataset.status }}</div>
+          <div>
+            <span class="strong">Created: </span
+            >{{ getTimeAgo(new Date(dataset.created)) }}
+          </div>
+          <div>
+            <span class="strong">Status: </span
+            ><span style="text-transform: capitalize">{{
+              dataset.status
+            }}</span>
+          </div>
         </div>
       </div>
     </main>
@@ -211,11 +233,11 @@ async function handleSubmit() {
               <button
                 class="secondary-btn"
                 type="button"
-                @click.stop="openCreateModal = false"
+                @click.stop="handleCancel"
               >
                 Cancel
               </button>
-              <button class="primary-btn" type="submit">Submit</button>
+              <button class="primary-btn" type="submit">Create</button>
             </div>
           </form>
         </div>
@@ -242,7 +264,7 @@ header {
 .datasets {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .dataset-card {
@@ -275,13 +297,7 @@ header {
   left: 50%;
   transform: translate(-50%, -50%);
   width: calc(100% - 3rem);
-  max-width: 768px;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  max-width: 600px;
 }
 
 textarea {
@@ -298,16 +314,6 @@ textarea {
   flex: 1;
   justify-content: stretch;
   margin-top: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.form-group * {
-  flex: 1;
 }
 
 label {
@@ -367,6 +373,10 @@ h4 {
 
 .no-mapping {
   font-size: 0.875rem;
+}
+
+.icon {
+  width: 1rem;
 }
 
 @media screen and (max-width: 768px) {

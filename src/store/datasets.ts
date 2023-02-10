@@ -23,10 +23,6 @@ export const useDatasetsStore = defineStore("datasets", {
     datasets: [],
   }),
   actions: {
-    async addDataset(data: CreateCSVDatasetParams) {
-      const dataset = (await createCSVDataset(data)).data;
-      this.datasets.unshift(dataset);
-    },
     async fetchDatasets() {
       const datasets = (await fetchDatasets()).data;
       if (datasets?.length) {
@@ -35,7 +31,7 @@ export const useDatasetsStore = defineStore("datasets", {
             new Date(b.created).getTime() - new Date(a.created).getTime()
         );
         console.log(sortedDatasets);
-        this.datasets.push(...sortedDatasets);
+        this.datasets = [...sortedDatasets];
       }
     },
   },

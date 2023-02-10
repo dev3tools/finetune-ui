@@ -59,15 +59,15 @@ function fetchModels() {
 }
 
 function fetchModel(id: string) {
-  return authorizedApi.get("/api/models/" + id);
+  return authorizedApi.get("/api/models/" + id + "/");
 }
 
 function updateModel(id: string, name: string) {
-  return authorizedApi.put("/api/models/" + id, { name });
+  return authorizedApi.put("/api/models/" + id + "/", { name });
 }
 
 function deleteModel(id: string) {
-  return authorizedApi.delete("/api/models/" + id);
+  return authorizedApi.delete("/api/models/" + id + "/");
 }
 
 function ask(openai_model_id: string, question: string) {

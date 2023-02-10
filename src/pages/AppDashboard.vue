@@ -2,6 +2,11 @@
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "../store/user.store";
 import { resetStore } from "../utils/resetStore";
+import { Square3Stack3DIcon, CircleStackIcon } from "@heroicons/vue/24/solid";
+import {
+  Cog6ToothIcon,
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const user = useUserStore();
@@ -29,18 +34,18 @@ function handleLogout() {
           </header>
           <ul>
             <li :class="{ selected: route.name === 'Datasets' }">
-              <RouterLink :to="{ name: 'Datasets' }" class="router-link"
-                >Datasets</RouterLink
-              >
+              <RouterLink :to="{ name: 'Datasets' }" class="router-link">
+                <CircleStackIcon class="icon" /> Datasets
+              </RouterLink>
             </li>
             <li :class="{ selected: route.name === 'Models' }">
-              <RouterLink :to="{ name: 'Models' }" class="router-link"
-                >Models</RouterLink
+              <RouterLink :to="{ name: 'Models' }" class="router-link">
+                <Square3Stack3DIcon class="icon" /> Models</RouterLink
               >
             </li>
             <li :class="{ selected: route.name === 'Settings' }">
-              <RouterLink :to="{ name: 'Settings' }" class="router-link"
-                >Settings</RouterLink
+              <RouterLink :to="{ name: 'Settings' }" class="router-link">
+                <Cog6ToothIcon class="icon" /> Settings</RouterLink
               >
             </li>
           </ul>
@@ -50,7 +55,9 @@ function handleLogout() {
             <img :src="user.profileImage" />
             {{ user.name }}
           </p>
-          <button class="logout-btn" @click.stop="handleLogout">LOGOUT</button>
+          <button class="logout-btn" @click.stop="handleLogout">
+            <ArrowRightOnRectangleIcon class="icon" /> LOGOUT
+          </button>
         </div>
       </div>
     </aside>
@@ -65,6 +72,10 @@ function handleLogout() {
   display: flex;
   height: 100vh;
   overflow: hidden;
+}
+
+.icon {
+  width: 1.25rem;
 }
 
 .heading {
@@ -128,10 +139,11 @@ function handleLogout() {
 
 .sidebar ul li .router-link {
   width: 100%;
+  display: flex;
+  gap: 0.75rem;
   padding: 0.5rem 1rem;
   text-decoration: none;
   color: currentColor;
-  display: block;
 }
 
 .sidebar ul li.selected {
@@ -153,6 +165,7 @@ function handleLogout() {
   background: none;
   border: 2px solid #f5f5f5;
   display: flex;
+  gap: 0.5rem;
   width: 100%;
   height: 2.5rem;
   font-weight: 600;
