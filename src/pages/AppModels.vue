@@ -151,10 +151,7 @@ async function handlePlaygroundSubmit() {
   }, 1000);
   try {
     playground.value.answer = (
-      await ask(
-        (selectedModel.value as Model).openai_id,
-        playground.value.question
-      )
+      await ask((selectedModel.value as Model).id, playground.value.question)
     ).data;
   } catch (e) {
     toast.error(
