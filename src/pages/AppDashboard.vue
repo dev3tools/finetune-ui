@@ -7,7 +7,7 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
-import { onBeforeMount, ref } from "vue";
+import { onBeforeMount, ref, watch } from "vue";
 import { useSettingsStore } from "../store/settings";
 import { useDatasetsStore } from "../store/datasets";
 import { useModelsStore } from "../store/models";
@@ -20,6 +20,7 @@ const settings = useSettingsStore();
 const datasetStore = useDatasetsStore();
 const modelStore = useModelsStore();
 const openApiKeyModal = ref(false);
+const mobileNav = ref("Datasets");
 const apiKey = ref("");
 
 onBeforeMount(async () => {
@@ -51,15 +52,29 @@ async function handleSave() {
   }
   await settings.saveOpenAiApiKey(apiKey.value);
   toast.success("Api Key saved");
-  openApiKeyModal.value = false
+  openApiKeyModal.value = false;
   router.push({ name: "Dashboard" });
 }
+
+watch(
+  () => route.name,
+  () => {
+    mobileNav.value = String(route.name);
+  }
+);
+
+watch(
+  () => mobileNav.value,
+  () => {
+    router.push({ name: mobileNav.value });
+  }
+);
 </script>
 
 <template>
   <main class="dashboard">
     <aside class="sidebar gradient-background">
-      <div class="sidebar-content">
+      <nav class="sidebar-content">
         <div>
           <header>
             <h1>
@@ -89,39 +104,68 @@ async function handleSave() {
         <div>
           <p class="user-identity" :title="user.email">
             <img :src="user.profileImage" />
-            <span style="overflow: hidden; text-overflow: ellipsis;">{{ user.name }}</span>
+            <span style="overflow: hidden; text-overflow: ellipsis">{{
+              user.name
+            }}</span>
           </p>
           <button class="logout-btn" @click.stop="handleLogout">
             <ArrowRightOnRectangleIcon class="icon" /> LOGOUT
           </button>
         </div>
-      </div>
+      </nav>
     </aside>
     <section class="content">
-      <RouterView />
+      <header class="sidebar-replacement">
+        <h1>
+          <RouterLink :to="{ name: 'Dashboard' }" class="heading"
+            >Starknet.email</RouterLink
+          >
+        </h1>
+        <nav class="nav">
+          <select v-model="mobileNav" style="font-size: 1rem; font-weight: 500">
+            <option value="Datasets">Datasets</option>
+            <option value="Models">Models</option>
+            <option value="Settings">Settings</option>
+          </select>
+          <img :src="user.profileImage" class="profile" :title="user.email" />
+          <button class="primary-btn" @click.stop="handleLogout" title="Logout">
+            <ArrowRightOnRectangleIcon class="icon" />
+          </button>
+        </nav>
+      </header>
+      <RouterView v-slot="{ Component }">
+        <Transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </section>
     <Transition name="fade" mode="in-out">
       <div v-if="openApiKeyModal" class="overlay-container">
         <div class="overlay"></div>
         <div class="overlay-content">
-        <div class="api-key-modal">
-          <p style="display: flex; flex-direction: column; gap: 0.5rem">
-            <h3>Enter OpenAI API key to continue</h3>
-            <a
-              href="https://platform.openai.com/account/api-keys"
-              target="_blank"
-              >Click here to get your API key.</a
-            >
-          </p>
-          <form @submit.prevent="handleSave">
-            <input
-              placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              style="max-width: 20rem; text-overflow: ellipsis"
-              v-model.trim="apiKey"
-            />
-            <button class="primary-btn" style="width: 6rem; align-self: center;">Save</button>
-          </form>
-        </div>
+          <div class="api-key-modal">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <h3>Enter OpenAI API key to continue</h3>
+              <a
+                href="https://platform.openai.com/account/api-keys"
+                target="_blank"
+                >Click here to get your API key.
+              </a>
+            </div>
+            <form @submit.prevent="handleSave">
+              <input
+                placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                style="max-width: 20rem; text-overflow: ellipsis"
+                v-model.trim="apiKey"
+              />
+              <button
+                class="primary-btn"
+                style="width: 6rem; align-self: center"
+              >
+                Save
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </Transition>
@@ -178,6 +222,10 @@ async function handleSave() {
   flex-direction: column;
   justify-content: space-between;
   box-shadow: rgba(0, 0, 0, 0.4) 2px 0 4px;
+}
+
+.sidebar-replacement {
+  display: none;
 }
 
 .sidebar ul {
@@ -273,8 +321,45 @@ a {
     display: none;
   }
 
+  header {
+    margin-bottom: 1.25rem;
+    margin-top: -1rem;
+  }
+
   .content {
     width: 100%;
+  }
+
+  .sidebar-replacement {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .sidebar-replacement h1 {
+    margin: 0;
+  }
+
+  .heading {
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  .profile {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+  }
+  .nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .icon {
+    aspect-ratio: 1/1;
   }
 }
 </style>
