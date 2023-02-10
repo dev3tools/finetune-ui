@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref, reactive, type Ref } from "vue";
+import { computed, ref, reactive, onBeforeMount, type Ref } from "vue";
 import { useDatasetsStore } from "../store/datasets";
 import {
   readCsv,
@@ -7,8 +7,10 @@ import {
   type CreateCSVDatasetParams,
 } from "../services/api.service";
 import { toast } from "vue3-toastify";
+import { useLoaderStore } from "../store/loader.store";
 
 const datasetStore = useDatasetsStore();
+const loader = useLoaderStore();
 const openCreateModal = ref(false);
 const csvHeadings: Ref<string[]> = ref([]);
 const inputs = reactive({
@@ -21,6 +23,10 @@ const inputs = reactive({
 const csvFile: Ref<File | null> = ref(null);
 
 const datasets = computed(() => datasetStore.datasets);
+
+onBeforeMount(() => {
+  datasetStore.fetchDatasets();
+});
 
 async function handleFileChange(ev: any) {
   const file = ev.target.files[0];
@@ -70,6 +76,7 @@ async function handleSubmit() {
   if (inputs.endLine.trim().length) {
     data.endLine = inputs.endLine;
   }
+  loader.show("Creating the dataset...");
   try {
     await createCSVDataset(data);
     toast.success("Dataset created");
@@ -84,6 +91,8 @@ async function handleSubmit() {
     openCreateModal.value = false;
   } catch (e) {
     toast.error("Something went wrong while creation of dataset. Try again");
+  } finally {
+    loader.hide();
   }
 }
 </script>
@@ -154,7 +163,9 @@ async function handleSubmit() {
                   <span class="mapping-id">##{{ index }}##</span>
                 </div>
               </div>
-              <div v-else>Upload a CSV to get column mapping</div>
+              <div v-else class="no-mapping">
+                Upload a CSV to get column mapping
+              </div>
             </div>
             <div class="form-group">
               <label for="prompt">Input Prompt</label>
@@ -187,8 +198,8 @@ async function handleSubmit() {
                 <label for="end">End (Optional)</label>
                 <input
                   id="end"
-                  type="Line number till where data should be read"
-                  placeholder="0"
+                  type="number"
+                  placeholder="Line number till where data should be read"
                   v-model="inputs.endLine"
                 />
               </div>
@@ -337,6 +348,10 @@ h4 {
 .mapping-id {
   font-size: 0.875rem;
   margin-left: 0.5rem;
+}
+
+.no-mapping {
+  font-size: 0.875rem;
 }
 
 @media screen and (max-width: 768px) {

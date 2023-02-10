@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { ref, onBeforeMount } from "vue";
+import { useSettingsStore } from "../store/settings";
+import { toast } from "vue3-toastify";
+
+const settings = useSettingsStore();
+const apiKey = ref(settings.openAiApiKey);
+
+onBeforeMount(() => {
+  settings.fetchOpenAiApiKey();
+});
+
+async function handleSave() {
+  await settings.saveOpenAiApiKey(apiKey.value);
+  toast.success("Api Key saved");
+}
+</script>
+
 <template>
   <div>
     <header>
@@ -14,8 +32,15 @@
         <input
           placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
           style="max-width: 20rem; text-overflow: ellipsis"
+          v-model="apiKey"
         />
-        <button class="primary-btn" style="width: 6rem">Save</button>
+        <button
+          class="primary-btn"
+          style="width: 6rem"
+          @click.stop="handleSave"
+        >
+          Save
+        </button>
       </form>
     </main>
   </div>
