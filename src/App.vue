@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { onBeforeMount } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { refreshAccessToken } from "./services/api.service";
 import { useLoaderStore } from "./store/loader.store";
 import { useUserStore } from "./store/user.store";
@@ -8,10 +8,11 @@ import { useUserStore } from "./store/user.store";
 const loader = useLoaderStore();
 const user = useUserStore();
 const router = useRouter();
+const route = useRoute();
 
 const refreshToken = localStorage.getItem("refresh_token");
 
-onMounted(async () => {
+onBeforeMount(async () => {
   if (refreshToken) {
     loader.show("Signing in...");
     try {
@@ -24,7 +25,9 @@ onMounted(async () => {
       user.name = userProfile.name;
       user.profileImage = userProfile.profileImage;
       sessionStorage.setItem("access_token", data.accessToken);
-      router.push({ name: "Dashboard" });
+      if (route.query.redirectTo) {
+        router.replace(String(route.query.redirectTo));
+      } else router.replace({ name: "Dashboard" });
     } catch (e) {
       localStorage.clear();
       sessionStorage.clear();

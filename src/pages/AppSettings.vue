@@ -8,9 +8,18 @@ const apiKey = ref(settings.openAiApiKey);
 
 onBeforeMount(() => {
   settings.fetchOpenAiApiKey();
+  apiKey.value = settings.openAiApiKey;
 });
 
 async function handleSave() {
+  if (!apiKey.value?.trim().length) {
+    return toast.error("Api Key should not be empty");
+  }
+  if (!apiKey.value.startsWith("sk-") || apiKey.value.length !== 51) {
+    return toast.error(
+      "Incorrect api key format. Please enter a valid Open AI API key"
+    );
+  }
   await settings.saveOpenAiApiKey(apiKey.value);
   toast.success("Api Key saved");
 }
@@ -28,19 +37,13 @@ async function handleSave() {
           >Click here to get your API key.</a
         >
       </p>
-      <form @submit.prevent="void 0">
+      <form @submit.prevent="handleSave">
         <input
           placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
           style="max-width: 20rem; text-overflow: ellipsis"
-          v-model="apiKey"
+          v-model.trim="apiKey"
         />
-        <button
-          class="primary-btn"
-          style="width: 6rem"
-          @click.stop="handleSave"
-        >
-          Save
-        </button>
+        <button class="primary-btn" style="width: 6rem">Save</button>
       </form>
     </main>
   </div>

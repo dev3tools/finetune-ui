@@ -73,13 +73,21 @@ const router: Router = createRouter({
   },
 });
 
-router.beforeEach((to) => {
+router.beforeEach((to, from) => {
   if (
     to.matched.some((record) => record.meta.requiresAuth) &&
     !userStore.accessToken
   ) {
-    return router.replace({ name: "Login" });
+    return router.replace({
+      name: "Login",
+      query: {
+        redirectTo: to.fullPath,
+      },
+    });
   } else if (to.name === "Login" && userStore.accessToken) {
+    if (to.query.redirectTo) {
+      return router.replace(String(to.query.redirectTo));
+    }
     return router.replace({ name: "Dashboard" });
   }
 });
