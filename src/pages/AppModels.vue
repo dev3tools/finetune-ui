@@ -533,5 +533,9 @@ h4 {
   .buttons button {
     flex: unset;
   }
+
+  .card-buttons {
+    justify-content: center;
+  }
 }
 </style>
