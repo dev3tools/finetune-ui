@@ -7,16 +7,55 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
+import { onBeforeMount, ref, onMounted } from "vue";
+import { useSettingsStore } from "../store/settings";
+import { useDatasetsStore } from "../store/datasets";
+import { useModelsStore } from "../store/models";
+import { toast } from "vue3-toastify";
 
 const route = useRoute();
 const user = useUserStore();
 const router = useRouter();
+const settings = useSettingsStore();
+const datasetStore = useDatasetsStore();
+const modelStore = useModelsStore();
+const openApiKeyModal = ref(false);
+const apiKey = ref("");
+
+onBeforeMount(async () => {
+  await Promise.all([
+    settings.fetchOpenAiApiKey(),
+    datasetStore.fetchDatasets(),
+    modelStore.fetchModels(),
+  ]);
+});
+
+onMounted(() => {
+  if (!settings.openAiApiKey) {
+    openApiKeyModal.value = true;
+  }
+});
 
 function handleLogout() {
   resetStore();
   localStorage.clear();
   sessionStorage.clear();
   router.push({ name: "Login" });
+}
+
+async function handleSave() {
+  if (!apiKey.value?.trim().length) {
+    return toast.error("Api Key should not be empty");
+  }
+  if (!apiKey.value.startsWith("sk-") || apiKey.value.length !== 51) {
+    return toast.error(
+      "Incorrect api key format. Please enter a valid Open AI API key"
+    );
+  }
+  await settings.saveOpenAiApiKey(apiKey.value);
+  toast.success("Api Key saved");
+  openApiKeyModal.value = false
+  router.push({ name: "Dashboard" });
 }
 </script>
 
@@ -64,6 +103,29 @@ function handleLogout() {
     <section class="content">
       <RouterView />
     </section>
+    <Transition name="fade" mode="in-out">
+      <div v-if="openApiKeyModal" class="overlay-container">
+        <div class="overlay"></div>
+        <div class="api-key-modal">
+          <p style="display: flex; flex-direction: column; gap: 0.5rem">
+            <h3>Enter OpenAI API key to continue</h3>
+            <a
+              href="https://platform.openai.com/account/api-keys"
+              target="_blank"
+              >Click here to get your API key.</a
+            >
+          </p>
+          <form @submit.prevent="handleSave">
+            <input
+              placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              style="max-width: 20rem; text-overflow: ellipsis"
+              v-model.trim="apiKey"
+            />
+            <button class="primary-btn" style="width: 6rem; align-self: center;">Save</button>
+          </form>
+        </div>
+      </div>
+    </Transition>
   </main>
 </template>
 
@@ -127,6 +189,19 @@ function handleLogout() {
   gap: 0.5rem;
 }
 
+.api-key-modal {
+  position: absolute;
+  z-index: 2;
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 2rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 3rem);
+  max-width: 360px;
+}
+
 .sidebar ul li {
   margin: 0;
   padding: 0;
@@ -177,6 +252,24 @@ function handleLogout() {
 
 .logout-btn:hover {
   background-color: #f5f5f5;
+}
+
+h3 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+a {
+  color: currentColor;
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 768px) {

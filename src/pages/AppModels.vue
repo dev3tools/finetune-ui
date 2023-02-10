@@ -276,7 +276,7 @@ header {
   position: absolute;
   z-index: 2;
   background: #f5f5f5;
-  border-radius: 10px;
+  border-radius: 20px;
   padding: 2rem;
   top: 50%;
   left: 50%;
@@ -289,7 +289,7 @@ header {
   position: absolute;
   z-index: 2;
   background: #f5f5f5;
-  border-radius: 10px;
+  border-radius: 20px;
   padding: 2rem;
   top: 50%;
   left: 50%;
@@ -300,7 +300,7 @@ header {
 
 .buttons {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
   flex: 1;
   justify-content: stretch;
   margin-top: 1rem;

@@ -9,7 +9,6 @@ import {
 import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
 import { getTimeAgo } from "../utils/timeAgo";
-import { SquaresPlusIcon } from "@heroicons/vue/24/solid";
 
 const datasetStore = useDatasetsStore();
 const loader = useLoaderStore();
@@ -135,7 +134,12 @@ function handleCancel() {
           <div>
             <span class="strong">OpenAI Id: </span>{{ dataset.openai_id }}
           </div>
-          <div><span class="strong">File: </span>{{ dataset.file }}</div>
+          <div>
+            <span class="strong">File: </span
+            ><a :href="dataset.file" target="_blank" download>{{
+              dataset.file
+            }}</a>
+          </div>
           <div>
             <span class="strong">Created: </span
             >{{ getTimeAgo(new Date(dataset.created)) }}
@@ -290,7 +294,7 @@ header {
   position: absolute;
   z-index: 2;
   background: #f5f5f5;
-  border-radius: 10px;
+  border-radius: 20px;
   padding: 2rem;
   top: 50%;
   left: 50%;
@@ -309,7 +313,7 @@ textarea {
 
 .buttons {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
   flex: 1;
   justify-content: stretch;
   margin-top: 1rem;
@@ -339,7 +343,7 @@ h4 {
 
 .numbers {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .numbers * {
@@ -376,6 +380,11 @@ h4 {
 
 .icon {
   width: 1rem;
+}
+
+a {
+  color: currentColor;
+  text-underline-offset: 4px;
 }
 
 @media screen and (max-width: 768px) {
