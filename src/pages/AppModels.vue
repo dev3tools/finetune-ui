@@ -4,7 +4,7 @@ import { useDatasetsStore } from "../store/datasets";
 import { useModelsStore, type Model } from "../store/models";
 import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
-import { createModel, updateModel } from "../services/api.service";
+import { createModel, deleteModel, updateModel } from "../services/api.service";
 import { getTimeAgo } from "../utils/timeAgo";
 import { PlayIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
@@ -13,6 +13,7 @@ const modelStore = useModelsStore();
 const modelName = ref("");
 const openCreateModal = ref(false);
 const openUpdateModal = ref(false);
+const openDeleteModal = ref(false);
 const selectedDataset = ref("");
 const selectedModel: Ref<Model | null> = ref(null);
 const loader = useLoaderStore();
@@ -71,6 +72,21 @@ function getDataset(datasetId: string) {
   );
 }
 
+async function handleDelete() {
+  loader.show("Deleting the model...");
+  try {
+    await deleteModel((selectedModel.value as Model).id);
+    toast.success("Model deleted");
+    modelStore.fetchModels();
+    selectedModel.value = null;
+    openDeleteModal.value = false;
+  } catch (e) {
+    toast.error("Something went wrong while saving the model. Try again");
+  } finally {
+    loader.hide();
+  }
+}
+
 function openModel(model: Model) {
   selectedModel.value = model;
   modelName.value = model.name;
@@ -87,6 +103,16 @@ function handleUpdateCancel() {
   modelName.value = "";
   selectedModel.value = null;
   openUpdateModal.value = false;
+}
+
+function handleDeleteCancel() {
+  selectedModel.value = null;
+  openDeleteModal.value = false;
+}
+
+function openDelete(model: Model) {
+  selectedModel.value = model;
+  openDeleteModal.value = true;
 }
 </script>
 
@@ -110,7 +136,6 @@ function handleUpdateCancel() {
           v-for="model in models"
           :key="JSON.stringify(model)"
           class="model-card"
-          @click.stop="openModel(model)"
         >
           <h4>{{ model.name }}</h4>
           <div>
@@ -126,6 +151,15 @@ function handleUpdateCancel() {
           <div>
             <span class="strong">Status: </span
             ><span style="text-transform: capitalize">{{ model.status }}</span>
+          </div>
+          <div class="card-buttons">
+            <button class="primary-btn">Go to playground</button>
+            <button class="secondary-btn" @click.stop="openModel(model)">
+              Update
+            </button>
+            <button class="secondary-btn" @click.stop="openDelete(model)">
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -207,6 +241,28 @@ function handleUpdateCancel() {
         </div>
       </div>
     </Transition>
+    <Transition name="fade" mode="in-out">
+      <div v-if="openDeleteModal" class="overlay-container">
+        <div class="overlay"></div>
+        <div class="delete-model-modal">
+          <h3>Are you sure?</h3>
+          <p>This action will delete your existing modal</p>
+          <p>Model Name: {{ selectedModel?.name }}</p>
+          <form class="form" @submit.prevent="handleDelete">
+            <div class="buttons">
+              <button
+                class="secondary-btn"
+                type="button"
+                @click.stop="handleDeleteCancel"
+              >
+                Cancel
+              </button>
+              <button class="primary-btn" type="submit">Delete</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -230,6 +286,19 @@ header {
   max-width: 600px;
 }
 
+.delete-model-modal {
+  position: absolute;
+  z-index: 2;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 2rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 3rem);
+  max-width: 360px;
+}
+
 .buttons {
   display: flex;
   gap: 2rem;
@@ -240,6 +309,18 @@ header {
 
 .buttons button {
   flex: 1;
+}
+
+.card-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex: 1;
+  margin-top: 1rem;
+}
+
+.card-buttons button {
+  width: 8rem;
 }
 
 option {
@@ -267,11 +348,6 @@ option {
   gap: 0.5rem;
   border-radius: 20px;
   border: 1px solid currentColor;
-  cursor: pointer;
-}
-
-.model-card:hover {
-  background-color: #e5e4e2;
 }
 
 .strong {

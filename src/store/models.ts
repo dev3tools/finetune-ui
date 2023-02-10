@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { fetchModel, fetchModels } from "../services/api.service";
+import { fetchModels } from "../services/api.service";
 
 type Model = {
   id: string;
@@ -27,7 +27,6 @@ export const useModelsStore = defineStore("models", {
           (a: any, b: any) =>
             new Date(b.created).getTime() - new Date(a.created).getTime()
         );
-        console.log(sortedModels);
         this.models = [...sortedModels];
       }
     },

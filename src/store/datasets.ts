@@ -30,7 +30,6 @@ export const useDatasetsStore = defineStore("datasets", {
           (a: any, b: any) =>
             new Date(b.created).getTime() - new Date(a.created).getTime()
         );
-        console.log(sortedDatasets);
         this.datasets = [...sortedDatasets];
       }
     },

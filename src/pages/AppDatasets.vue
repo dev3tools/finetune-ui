@@ -54,7 +54,6 @@ function appendToPrompt(value: string) {
 }
 
 async function handleSubmit() {
-  console.log(csvFile.value);
   if (!csvFile.value) {
     return toast.error("Upload a valid CSV file to continue");
   }
