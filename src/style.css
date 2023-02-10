@@ -133,3 +133,8 @@ textarea {
   border-radius: 10px;
   box-shadow: none;
 }
+
+.Toastify {
+  position: relative;
+  z-index: 999999;
+}

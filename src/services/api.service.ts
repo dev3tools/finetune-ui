@@ -34,6 +34,7 @@ type CreateCSVDatasetParams = {
   file: File;
   prompt: string;
   value: string;
+  name: string;
   startLine?: string;
   endLine?: string;
 };
@@ -43,17 +44,18 @@ function createCSVDataset(data: CreateCSVDatasetParams) {
   formData.append("file", data.file);
   formData.append("prompt", data.prompt);
   formData.append("value", data.value);
+  formData.append("name", data.name);
   if (data.startLine) formData.append("start_line", data.startLine);
   if (data.endLine) formData.append("end_line", data.endLine);
-  return authorizedApi.post("/api/csv-data", formData);
+  return authorizedApi.post("/api/csv-data/", formData);
 }
 
 function fetchDatasets() {
-  return authorizedApi.get("/api/datasets");
+  return authorizedApi.get("/api/datasets/");
 }
 
 function fetchModels() {
-  return authorizedApi.get("/api/models");
+  return authorizedApi.get("/api/models/");
 }
 
 function fetchModel(id: string) {
@@ -69,22 +71,29 @@ function deleteModel(id: string) {
 }
 
 function ask(openai_model_id: string, question: string) {
-  return authorizedApi.post("/api/ask", {
+  return authorizedApi.post("/api/ask/", {
     ai_model: openai_model_id,
     question,
   });
 }
 
 function fetchApiKey() {
-  return authorizedApi.get("/api/api_key");
+  return authorizedApi.get("/api/api_key/");
 }
 
 function saveApiKey(api_key: string) {
-  return authorizedApi.post("/api/api_key", { api_key });
+  return authorizedApi.post("/api/api_key/", { api_key });
 }
 
 function createModel(dataset_id: string, name: string) {
-  return authorizedApi.post("/api/train", { dataset: dataset_id, name });
+  return authorizedApi.post("/api/train/", { dataset: dataset_id, name });
+}
+
+function readCsv(file: File, startLine: number = 1) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("line", String(startLine));
+  return authorizedApi.post("/api/read-csv/", formData);
 }
 
 export {
@@ -100,5 +109,6 @@ export {
   ask,
   fetchApiKey,
   saveApiKey,
+  readCsv,
   type CreateCSVDatasetParams,
 };

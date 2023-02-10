@@ -1,24 +1,90 @@
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, reactive, type Ref } from "vue";
 import { useDatasetsStore } from "../store/datasets";
-import { read } from "xlsx";
+import {
+  readCsv,
+  createCSVDataset,
+  type CreateCSVDatasetParams,
+} from "../services/api.service";
+import { toast } from "vue3-toastify";
 
 const datasetStore = useDatasetsStore();
 const openCreateModal = ref(false);
+const csvHeadings: Ref<string[]> = ref([]);
+const inputs = reactive({
+  prompt: "",
+  value: "",
+  startLine: "",
+  endLine: "",
+  name: "",
+});
+const csvFile: Ref<File | null> = ref(null);
 
 const datasets = computed(() => datasetStore.datasets);
 
-function handleFileChange(ev) {
+async function handleFileChange(ev: any) {
   const file = ev.target.files[0];
-  console.log(file);
-  const reader = new FileReader();
-  reader.onload = function (data) {
-    const workbook = read(data, {
-      type: "binary",
-    });
-    console.log(workbook);
+  try {
+    const csvData = (await readCsv(file)).data;
+    csvFile.value = file;
+    csvHeadings.value = csvData[0];
+  } catch (e) {
+    toast.error("Something went wrong while uploading csv");
+  }
+}
+
+function appendToPrompt(value: string) {
+  if (
+    inputs.prompt.length &&
+    (!inputs.prompt.endsWith(" ") ||
+      !inputs.prompt.endsWith("\t") ||
+      !inputs.prompt.endsWith("\n"))
+  ) {
+    inputs.prompt += " ";
+  }
+  inputs.prompt += value;
+}
+
+async function handleSubmit() {
+  if (!csvFile.value) {
+    return toast.error("Upload a valid CSV file to continue");
+  }
+  if (!inputs.name.trim().length) {
+    return toast.error("Enter the name to continue");
+  }
+  if (!inputs.prompt.trim().length) {
+    return toast.error("Enter the prompt to continue");
+  }
+  if (!inputs.value.trim().length) {
+    return toast.error("Enter the value to continue");
+  }
+  const data: CreateCSVDatasetParams = {
+    file: csvFile.value,
+    prompt: inputs.prompt,
+    value: inputs.value,
+    name: inputs.name,
   };
-  reader.readAsBinaryString(file);
+  if (inputs.startLine.trim().length) {
+    data.startLine = inputs.startLine;
+  }
+  if (inputs.endLine.trim().length) {
+    data.endLine = inputs.endLine;
+  }
+  try {
+    await createCSVDataset(data);
+    toast.success("Dataset created");
+    datasetStore.fetchDatasets();
+    inputs.prompt = "";
+    inputs.value = "";
+    inputs.startLine = "";
+    inputs.endLine = "";
+    inputs.name = "";
+    csvFile.value = null;
+    csvHeadings.value = [];
+    openCreateModal.value = false;
+  } catch (e) {
+    toast.error("Something went wrong while creation of dataset. Try again");
+  }
 }
 </script>
 
@@ -43,7 +109,7 @@ function handleFileChange(ev) {
           :key="JSON.stringify(dataset)"
           class="dataset-card"
         >
-          <span>{{ dataset.name }}</span>
+          <h4>{{ dataset.name }}</h4>
           <span><strong>OpenAI Id: </strong>{{ dataset.openai_id }}</span>
           <span><strong>File: </strong>{{ dataset.file }}</span>
           <span><strong>Status: </strong>{{ dataset.status }}</span>
@@ -55,33 +121,76 @@ function handleFileChange(ev) {
         <div class="overlay"></div>
         <div class="create-dataset-modal">
           <h3>Create a new dataset</h3>
-          <form class="form" @submit.prevent="void 0">
+          <form class="form" @submit.prevent="handleSubmit">
             <div class="form-group">
               <label for="file">File (.csv, .xls, .xlsx)</label>
               <input
                 id="file"
                 type="file"
                 placeholder=".csv, .xls, .xlsx"
-                accept=".csv, .xls, .xlsx, .ods, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                accept=".csv, .xls, .xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 @change="handleFileChange"
               />
             </div>
             <div class="form-group">
+              <label for="value">Dataset Name</label>
+              <input
+                id="name"
+                placeholder="Eg: My First Dataset."
+                v-model="inputs.name"
+              />
+            </div>
+            <div class="form-group">
+              <label>Column Mapping</label>
+              <div v-if="csvHeadings.length" class="heading-options">
+                <div
+                  class="mapping"
+                  v-for="(heading, index) in csvHeadings"
+                  :key="heading"
+                  @click.stop="appendToPrompt(`##${index}##`)"
+                >
+                  <span class="column-name">{{ heading }}</span
+                  >:
+                  <span class="mapping-id">##{{ index }}##</span>
+                </div>
+              </div>
+              <div v-else>Upload a CSV to get column mapping</div>
+            </div>
+            <div class="form-group">
               <label for="prompt">Input Prompt</label>
-              <textarea id="prompt" placeholder="Prompt" rows="5"></textarea>
+              <textarea
+                id="prompt"
+                placeholder="Eg: If a prompt has ##0## and ##1##..."
+                rows="5"
+                v-model="inputs.prompt"
+              ></textarea>
             </div>
             <div class="form-group">
               <label for="value">Output Value</label>
-              <input id="value" placeholder="Value" />
+              <input
+                id="value"
+                placeholder="Eg: The Value is ##2##."
+                v-model="inputs.value"
+              />
             </div>
             <div class="numbers">
               <div class="form-group">
                 <label for="start">Start from (Optional)</label>
-                <input id="start" type="number" placeholder="0" />
+                <input
+                  id="start"
+                  type="number"
+                  placeholder="Line number from where data should be read"
+                  v-model="inputs.startLine"
+                />
               </div>
               <div class="form-group">
                 <label for="end">End (Optional)</label>
-                <input id="end" type="number" placeholder="0" />
+                <input
+                  id="end"
+                  type="Line number till where data should be read"
+                  placeholder="0"
+                  v-model="inputs.endLine"
+                />
               </div>
             </div>
             <div class="buttons">
@@ -126,6 +235,8 @@ header {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  border-radius: 20px;
+  border: 1px solid currentColor;
 }
 
 .create-dataset-modal {
@@ -189,6 +300,12 @@ h3 {
   font-size: 1.5rem;
 }
 
+h4 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.125rem;
+}
+
 .numbers {
   display: flex;
   gap: 2rem;
@@ -196,6 +313,30 @@ h3 {
 
 .numbers * {
   flex: 1;
+}
+
+.heading-options {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.mapping {
+  border: 1px solid currentColor;
+  padding: 0.25rem 0.75rem;
+  border-radius: 100vh;
+  flex: unset;
+  cursor: pointer;
+}
+
+.column-name {
+  font-weight: 500;
+}
+
+.mapping-id {
+  font-size: 0.875rem;
+  margin-left: 0.5rem;
 }
 
 @media screen and (max-width: 768px) {

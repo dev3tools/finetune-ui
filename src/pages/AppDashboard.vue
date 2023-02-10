@@ -64,6 +64,7 @@ function handleLogout() {
 .dashboard {
   display: flex;
   height: 100vh;
+  overflow: hidden;
 }
 
 .heading {
@@ -143,6 +144,7 @@ function handleLogout() {
   background-color: #f5f5f5;
   padding: 2rem;
   margin: auto;
+  overflow-y: auto;
 }
 
 .logout-btn {
