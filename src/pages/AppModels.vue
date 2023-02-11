@@ -152,7 +152,7 @@ async function handlePlaygroundSubmit() {
   try {
     playground.value.answer = (
       await ask((selectedModel.value as Model).id, playground.value.question)
-    ).data;
+    ).data.answer;
   } catch (e) {
     toast.error(
       "Error occured while processing your request. Check your model's status and try again"
