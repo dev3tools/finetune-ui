@@ -198,8 +198,7 @@ function handleCancel() {
                     :key="heading"
                     @click.stop="appendToPrompt(`##${index}##`)"
                   >
-                    <span class="column-name">{{ heading }}</span>
-                    :
+                    <span class="column-name">{{ heading }} :</span>
                     <span class="mapping-id">##{{ index }}##</span>
                   </div>
                 </div>
@@ -443,18 +442,25 @@ h4 {
 
 .mapping {
   border: 1px solid currentColor;
-  padding: 0.25rem 1rem;
+  padding: 0 1rem 0.25rem;
   border-radius: 100vh;
   flex: unset;
   cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mapping:hover {
+  background-color: #213547;
+  color: #f5f5f5;
 }
 
 .column-name {
+  font-size: 0.625rem;
   font-weight: 500;
 }
 
 .mapping-id {
-  font-size: 0.875rem;
+  font-size: 0.625rem;
   margin-left: 0.25rem;
 }
 
