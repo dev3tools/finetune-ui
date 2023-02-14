@@ -37,6 +37,8 @@ type CreateCSVDatasetParams = {
   name: string;
   startLine?: string;
   endLine?: string;
+  separator?: string;
+  stopSequence?: string;
 };
 
 function createCSVDataset(data: CreateCSVDatasetParams) {
@@ -47,6 +49,8 @@ function createCSVDataset(data: CreateCSVDatasetParams) {
   formData.append("name", data.name);
   if (data.startLine) formData.append("start_line", data.startLine);
   if (data.endLine) formData.append("end_line", data.endLine);
+  if (data.separator) formData.append("separator", data.separator);
+  if (data.stopSequence) formData.append("stop_sequence", data.stopSequence);
   return authorizedApi.post("/api/csv-data/", formData);
 }
 

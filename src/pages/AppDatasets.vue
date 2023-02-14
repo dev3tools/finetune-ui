@@ -20,6 +20,8 @@ const inputs = reactive({
   startLine: "",
   endLine: "",
   name: "",
+  separator: "",
+  stopSequence: "",
 });
 const csvFile: Ref<File | null> = ref(null);
 
@@ -70,6 +72,8 @@ async function handleSubmit() {
     prompt: inputs.prompt,
     value: inputs.value,
     name: inputs.name,
+    separator: inputs.separator,
+    stopSequence: inputs.stopSequence,
   };
   if (inputs.startLine) {
     data.startLine = inputs.startLine;
@@ -82,14 +86,7 @@ async function handleSubmit() {
     await createCSVDataset(data);
     toast.success("Dataset created");
     datasetStore.fetchDatasets();
-    inputs.prompt = "";
-    inputs.value = "";
-    inputs.startLine = "";
-    inputs.endLine = "";
-    inputs.name = "";
-    csvFile.value = null;
-    csvHeadings.value = [];
-    openCreateModal.value = false;
+    handleCancel();
   } catch (e) {
     toast.error("Something went wrong while creating the dataset. Try again");
   } finally {
@@ -103,6 +100,8 @@ function handleCancel() {
   inputs.startLine = "";
   inputs.endLine = "";
   inputs.name = "";
+  inputs.separator = "";
+  inputs.stopSequence = "";
   csvFile.value = null;
   csvHeadings.value = [];
   openCreateModal.value = false;
@@ -151,6 +150,14 @@ function handleCancel() {
             ><span style="text-transform: capitalize">{{
               dataset.status
             }}</span>
+          </div>
+          <div v-if="dataset.separator">
+            <span class="strong">Separator: </span>
+            <span>{{ dataset.separator }}</span>
+          </div>
+          <div v-if="dataset.stop_sequence">
+            <span class="strong">Stop sequence: </span
+            ><span>{{ dataset.stop_sequence }}</span>
           </div>
         </div>
       </div>
@@ -233,6 +240,24 @@ function handleCancel() {
                     type="number"
                     placeholder="Line number till where data should be read"
                     v-model="inputs.endLine"
+                  />
+                </div>
+              </div>
+              <div class="numbers">
+                <div class="form-group">
+                  <label for="separator">Separator (Optional)</label>
+                  <input
+                    id="separator"
+                    placeholder="Default ###"
+                    v-model="inputs.separator"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="stop-sequence">Stop sequence (Optional)</label>
+                  <input
+                    id="end"
+                    placeholder="Default ###"
+                    v-model="inputs.stopSequence"
                   />
                 </div>
               </div>

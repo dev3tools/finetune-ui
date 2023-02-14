@@ -12,6 +12,8 @@ type Dataset = {
   created: string;
   status: string;
   openai_id: string;
+  separator?: string;
+  stop_sequence?: string;
 };
 
 interface DatasetsState {
