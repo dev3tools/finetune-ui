@@ -36,7 +36,7 @@ async function handleFileChange(ev: any) {
   try {
     const csvData = (await readCsv(file)).data;
     csvFile.value = file;
-    csvHeadings.value = csvData[0];
+    csvHeadings.value = csvData;
   } catch (e) {
     toast.error("Something went wrong while uploading csv");
   }
@@ -188,7 +188,7 @@ function handleCancel() {
                 />
               </div>
               <div class="form-group">
-                <label>Column Mapping</label>
+                <label>CSV Columns</label>
                 <div v-if="csvHeadings.length" class="heading-options">
                   <div
                     class="mapping"
@@ -196,8 +196,8 @@ function handleCancel() {
                     :key="heading"
                     @click.stop="appendToPrompt(`##${index}##`)"
                   >
-                    <span class="column-name">{{ heading }}</span
-                    >:
+                    <span class="column-name">{{ heading }}</span>
+                    :
                     <span class="mapping-id">##{{ index }}##</span>
                   </div>
                 </div>
@@ -386,7 +386,7 @@ h4 {
 
 .mapping {
   border: 1px solid currentColor;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 1rem;
   border-radius: 100vh;
   flex: unset;
   cursor: pointer;
@@ -398,7 +398,7 @@ h4 {
 
 .mapping-id {
   font-size: 0.875rem;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 }
 
 .no-mapping {
