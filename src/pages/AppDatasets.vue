@@ -9,10 +9,12 @@ import {
 import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
 import { getTimeAgo } from "../utils/timeAgo";
+import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 
 const datasetStore = useDatasetsStore();
 const loader = useLoaderStore();
 const openCreateModal = ref(false);
+const isExpanded = ref(false);
 const csvHeadings: Ref<string[]> = ref([]);
 const inputs = reactive({
   prompt: "",
@@ -223,42 +225,58 @@ function handleCancel() {
                   v-model="inputs.value"
                 ></textarea>
               </div>
-              <div class="numbers">
-                <div class="form-group">
-                  <label for="start">Start from (Optional)</label>
-                  <input
-                    id="start"
-                    type="number"
-                    placeholder="Line number from where data should be read"
-                    v-model="inputs.startLine"
-                  />
+              <div
+                class="collapsible"
+                :class="{ 'collapsible-active': isExpanded }"
+              >
+                <div
+                  class="collapsible-text"
+                  @click.stop="isExpanded = !isExpanded"
+                >
+                  <span>Advanced options</span>
+                  <ChevronDownIcon class="down-icon" />
                 </div>
-                <div class="form-group">
-                  <label for="end">End (Optional)</label>
-                  <input
-                    id="end"
-                    type="number"
-                    placeholder="Line number till where data should be read"
-                    v-model="inputs.endLine"
-                  />
-                </div>
-              </div>
-              <div class="numbers">
-                <div class="form-group">
-                  <label for="separator">Separator (Optional)</label>
-                  <input
-                    id="separator"
-                    placeholder="Default ###"
-                    v-model="inputs.separator"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="stop-sequence">Stop sequence (Optional)</label>
-                  <input
-                    id="end"
-                    placeholder="Default ###"
-                    v-model="inputs.stopSequence"
-                  />
+                <div class="advanced-options-container">
+                  <div class="numbers">
+                    <div class="form-group">
+                      <label for="start">Start from (Optional)</label>
+                      <input
+                        id="start"
+                        type="number"
+                        placeholder="Line number from where data should be read"
+                        v-model="inputs.startLine"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="end">End (Optional)</label>
+                      <input
+                        id="end"
+                        type="number"
+                        placeholder="Line number till where data should be read"
+                        v-model="inputs.endLine"
+                      />
+                    </div>
+                  </div>
+                  <div class="numbers">
+                    <div class="form-group">
+                      <label for="separator">Separator (Optional)</label>
+                      <input
+                        id="separator"
+                        placeholder="Default ###"
+                        v-model="inputs.separator"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="stop-sequence"
+                        >Stop sequence (Optional)</label
+                      >
+                      <input
+                        id="end"
+                        placeholder="Default ###"
+                        v-model="inputs.stopSequence"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="buttons">
@@ -346,9 +364,48 @@ textarea {
   margin-top: 1rem;
 }
 
+.collapsible {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.collapsible-active {
+  gap: 0.5rem;
+}
+
+.collapsible-text {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
 label {
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.advanced-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 0;
+}
+
+.collapsible-active .advanced-options-container {
+  height: 100%;
+}
+
+.down-icon {
+  width: 1rem;
+  transition: transform 0.3s;
+}
+
+.collapsible-active .down-icon {
+  transform: rotate(-180deg);
 }
 
 .buttons button {
