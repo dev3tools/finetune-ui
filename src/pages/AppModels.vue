@@ -402,7 +402,7 @@ textarea {
 
 .create-model-modal {
   background: #f5f5f5;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
   max-width: 360px;
@@ -424,7 +424,7 @@ textarea {
 .playground-modal {
   position: relative;
   background: #f5f5f5;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
   max-width: 600px;
@@ -485,7 +485,7 @@ option {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border-radius: 20px;
+  border-radius: 10px;
   border: 1px solid currentColor;
 }
 

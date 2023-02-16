@@ -11,9 +11,19 @@ import { useLoaderStore } from "../store/loader.store";
 import { getTimeAgo } from "../utils/timeAgo";
 import { ChevronDownIcon } from "@heroicons/vue/24/solid";
 
+type PreviewData = {
+  preview: {
+    completion: string;
+    prompt: string;
+  }[];
+  rows: number;
+  tokens: number;
+};
+
 const datasetStore = useDatasetsStore();
 const loader = useLoaderStore();
 const openCreateModal = ref(false);
+const openPreviewModal = ref(false);
 const isExpanded = ref(false);
 const csvHeadings: Ref<string[]> = ref([]);
 const inputs = reactive({
@@ -26,6 +36,7 @@ const inputs = reactive({
   stopSequence: "",
 });
 const csvFile: Ref<File | null> = ref(null);
+const previewData: Ref<PreviewData | null> = ref(null);
 
 const datasets = computed(() => datasetStore.datasets);
 
@@ -83,17 +94,49 @@ async function handleSubmit() {
   if (inputs.endLine) {
     data.endLine = inputs.endLine;
   }
-  loader.show("Creating the dataset...");
+  loader.show("Creating the preview...");
   try {
-    await createCSVDataset(data);
-    toast.success("Dataset created");
+    previewData.value = (await createCSVDataset(data, true)).data;
     datasetStore.fetchDatasets();
-    handleCancel();
+    openPreviewModal.value = true;
+    openCreateModal.value = false;
   } catch (e) {
-    toast.error("Something went wrong while creating the dataset. Try again");
+    toast.error("Something went wrong. Try again");
   } finally {
     loader.hide();
   }
+}
+
+async function handleCreate() {
+  const data: CreateCSVDatasetParams = {
+    file: csvFile.value as File,
+    prompt: inputs.prompt,
+    value: inputs.value,
+    name: inputs.name,
+    separator: inputs.separator,
+    stopSequence: inputs.stopSequence,
+  };
+  if (inputs.startLine) {
+    data.startLine = inputs.startLine;
+  }
+  if (inputs.endLine) {
+    data.endLine = inputs.endLine;
+  }
+  loader.show("Creating the dataset...");
+  try {
+    await createCSVDataset(data);
+    datasetStore.fetchDatasets();
+    handleCancel();
+  } catch (e) {
+    toast.error("Something went wrong when creating the dataset. Try again");
+  } finally {
+    loader.hide();
+  }
+}
+
+function handleBack() {
+  openPreviewModal.value = false;
+  openCreateModal.value = true;
 }
 
 function handleCancel() {
@@ -107,6 +150,8 @@ function handleCancel() {
   csvFile.value = null;
   csvHeadings.value = [];
   openCreateModal.value = false;
+  openPreviewModal.value = false;
+  previewData.value = null;
 }
 </script>
 
@@ -286,9 +331,63 @@ function handleCancel() {
                 >
                   Cancel
                 </button>
-                <button class="primary-btn" type="submit">Create</button>
+                <button class="primary-btn" type="submit">Preview</button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+    </Transition>
+    <Transition>
+      <div v-if="openPreviewModal" class="overlay-container">
+        <div class="overlay"></div>
+        <div class="overlay-content">
+          <div class="create-dataset-modal">
+            <h3>Dataset Preview</h3>
+            <div style="margin-bottom: 1rem; display: flex; gap: 2rem">
+              <div class="tokens">
+                <span style="font-size: 0.875rem">Rows: </span>
+                <span style="font-size: 0.875rem">{{ previewData?.rows }}</span>
+              </div>
+              <div class="tokens">
+                <span style="font-size: 0.875rem">Tokens: </span>
+                <span style="font-size: 0.875rem">{{
+                  previewData?.tokens
+                }}</span>
+              </div>
+            </div>
+            <div class="preview-container">
+              <div
+                class="preview-content"
+                v-for="preview in previewData?.preview"
+                :key="JSON.stringify(preview)"
+              >
+                <label class="preview-input-label">Prompt</label>
+                <label class="preview-input-label">Completion</label>
+                <span class="preview-input">
+                  {{ preview.prompt }}
+                </span>
+                <span class="preview-output">
+                  {{ preview.completion.replace("/n", "\/n") }}
+                </span>
+              </div>
+            </div>
+            <div class="buttons" style="margin-top: 2rem">
+              <button
+                class="secondary-btn"
+                type="button"
+                @click.stop="handleBack"
+              >
+                Back
+              </button>
+              <button
+                class="primary-btn"
+                type="submit"
+                @click.stop="handleCreate"
+              >
+                Create
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -322,7 +421,7 @@ header {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border-radius: 20px;
+  border-radius: 10px;
   border: 1px solid currentColor;
 }
 
@@ -339,7 +438,7 @@ header {
 
 .create-dataset-modal {
   background: #f5f5f5;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
   max-width: 600px;
@@ -392,6 +491,25 @@ label {
   flex-direction: column;
   gap: 0.5rem;
   height: 0;
+}
+
+.preview-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.preview-content {
+  display: grid;
+  grid-template-columns: calc(50% - 0.6rem) calc(50% - 0.6rem);
+  gap: 0.5rem 1.2rem;
+}
+
+.preview-input,
+.preview-output {
+  outline: 1px solid currentColor;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
 }
 
 .collapsible-active .advanced-options-container {

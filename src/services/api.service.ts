@@ -41,7 +41,10 @@ type CreateCSVDatasetParams = {
   stopSequence?: string;
 };
 
-function createCSVDataset(data: CreateCSVDatasetParams) {
+function createCSVDataset(
+  data: CreateCSVDatasetParams,
+  preview: boolean = false
+) {
   const formData = new FormData();
   formData.append("file", data.file);
   formData.append("prompt", data.prompt);
@@ -51,6 +54,9 @@ function createCSVDataset(data: CreateCSVDatasetParams) {
   if (data.endLine) formData.append("end_line", data.endLine);
   if (data.separator) formData.append("separator", data.separator);
   if (data.stopSequence) formData.append("stop_sequence", data.stopSequence);
+  if (preview) {
+    return authorizedApi.post("/api/preview/", formData);
+  }
   return authorizedApi.post("/api/csv-data/", formData);
 }
 

@@ -165,6 +165,10 @@ watch(
                 Save
               </button>
             </form>
+            <div class="skip">
+              Want to add later?
+              <a @click.stop="openApiKeyModal = false">Skip for now.</a>
+            </div>
           </div>
         </div>
       </div>
@@ -238,7 +242,7 @@ watch(
 
 .api-key-modal {
   background: #f5f5f5;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
   max-width: 360px;
@@ -314,6 +318,18 @@ form {
 a {
   color: currentColor;
   text-underline-offset: 4px;
+}
+
+.skip {
+  font-size: 0.75rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.skip a {
+  text-decoration: underline;
+  margin-left: 0.25rem;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
