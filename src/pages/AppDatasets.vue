@@ -10,6 +10,7 @@ import { toast } from "vue3-toastify";
 import { useLoaderStore } from "../store/loader.store";
 import { getTimeAgo } from "../utils/timeAgo";
 import { ChevronDownIcon } from "@heroicons/vue/24/solid";
+import { useSettingsStore } from "../store/settings";
 
 type PreviewData = {
   preview: {
@@ -24,6 +25,7 @@ const datasetStore = useDatasetsStore();
 const loader = useLoaderStore();
 const openCreateModal = ref(false);
 const openPreviewModal = ref(false);
+const openApiKeyModal = ref(false);
 const isExpanded = ref(false);
 const csvHeadings: Ref<string[]> = ref([]);
 const inputs = reactive({
@@ -37,6 +39,8 @@ const inputs = reactive({
 });
 const csvFile: Ref<File | null> = ref(null);
 const previewData: Ref<PreviewData | null> = ref(null);
+const apiKey = ref("");
+const settings = useSettingsStore();
 
 const datasets = computed(() => datasetStore.datasets);
 
@@ -108,6 +112,10 @@ async function handleSubmit() {
 }
 
 async function handleCreate() {
+  if (!settings.openAiApiKey) {
+    openPreviewModal.value = false;
+    return (openApiKeyModal.value = true);
+  }
   const data: CreateCSVDatasetParams = {
     file: csvFile.value as File,
     prompt: inputs.prompt,
@@ -126,6 +134,7 @@ async function handleCreate() {
   try {
     await createCSVDataset(data);
     datasetStore.fetchDatasets();
+    toast.error("Dataset created. Now create a model to train the AI");
     handleCancel();
   } catch (e) {
     toast.error("Something went wrong when creating the dataset. Try again");
@@ -152,6 +161,23 @@ function handleCancel() {
   openCreateModal.value = false;
   openPreviewModal.value = false;
   previewData.value = null;
+}
+
+async function handleApiKeySave() {
+  loader.show("Saving api key...");
+  if (!apiKey.value?.trim().length) {
+    return toast.error("Api Key should not be empty");
+  }
+  if (!apiKey.value.startsWith("sk-") || apiKey.value.length !== 51) {
+    return toast.error(
+      "Incorrect api key format. Please enter a valid Open AI API key"
+    );
+  }
+  await settings.saveOpenAiApiKey(apiKey.value);
+  toast.success("Api Key saved");
+  openApiKeyModal.value = false;
+  openPreviewModal.value = true;
+  await handleCreate();
 }
 </script>
 
@@ -344,14 +370,23 @@ function handleCancel() {
         <div class="overlay-content">
           <div class="create-dataset-modal">
             <h3>Dataset Preview</h3>
-            <div style="margin-bottom: 1rem; display: flex; gap: 2rem">
+            <div
+              style="
+                margin-bottom: 1.5rem;
+                display: flex;
+                gap: 1.5rem;
+                margin-top: -1rem;
+              "
+            >
               <div class="tokens">
                 <span style="font-size: 0.875rem">Rows: </span>
-                <span style="font-size: 0.875rem">{{ previewData?.rows }}</span>
+                <span style="font-size: 0.875rem; font-weight: 300">{{
+                  previewData?.rows
+                }}</span>
               </div>
               <div class="tokens">
                 <span style="font-size: 0.875rem">Tokens: </span>
-                <span style="font-size: 0.875rem">{{
+                <span style="font-size: 0.875rem; font-weight: 300">{{
                   previewData?.tokens
                 }}</span>
               </div>
@@ -392,6 +427,36 @@ function handleCancel() {
         </div>
       </div>
     </Transition>
+    <Transition name="fade" mode="in-out">
+      <div v-if="openApiKeyModal" class="overlay-container">
+        <div class="overlay"></div>
+        <div class="overlay-content">
+          <div class="api-key-modal">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <h3>Enter OpenAI API key to continue</h3>
+              <a
+                href="https://platform.openai.com/account/api-keys"
+                target="_blank"
+                >Click here to get your API key.
+              </a>
+            </div>
+            <form @submit.prevent="handleApiKeySave">
+              <input
+                placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                style="max-width: 20rem; text-overflow: ellipsis"
+                v-model.trim="apiKey"
+              />
+              <button
+                class="primary-btn"
+                style="width: 6rem; align-self: center"
+              >
+                Save
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -423,6 +488,34 @@ header {
   gap: 0.5rem;
   border-radius: 10px;
   border: 1px solid currentColor;
+}
+
+.api-key-modal {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 2rem;
+  width: calc(100% - 3rem);
+  max-width: 360px;
+  overflow-y: auto;
+  max-height: calc(100% - 4rem);
+}
+
+.api-key-modal h3 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+.api-key-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.api-key-modal a {
+  color: currentColor;
+  text-underline-offset: 4px;
 }
 
 .strong {
@@ -502,7 +595,7 @@ label {
 .preview-content {
   display: grid;
   grid-template-columns: calc(50% - 0.6rem) calc(50% - 0.6rem);
-  gap: 0.5rem 1.2rem;
+  gap: 0.25rem 1.2rem;
 }
 
 .preview-input,
@@ -510,6 +603,8 @@ label {
   outline: 1px solid currentColor;
   border-radius: 10px;
   padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  word-break: break-all;
 }
 
 .collapsible-active .advanced-options-container {
