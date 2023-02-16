@@ -9,6 +9,7 @@ type Model = {
   created: string;
   trained_model: string;
   dataset: string;
+  openai_model: "ada" | "babbage" | "curie" | "davinci";
 };
 
 interface ModelsState {

@@ -96,8 +96,16 @@ function saveApiKey(api_key: string) {
   return authorizedApi.post("/api/api_key/", { api_key });
 }
 
-function createModel(dataset_id: string, name: string) {
-  return authorizedApi.post("/api/train/", { dataset: dataset_id, name });
+function createModel(
+  dataset_id: string,
+  name: string,
+  openai_model: "ada" | "babbage" | "curie" | "davinci"
+) {
+  return authorizedApi.post("/api/train/", {
+    dataset: dataset_id,
+    name,
+    openai_model,
+  });
 }
 
 function readCsv(file: File, startLine: number = 1) {

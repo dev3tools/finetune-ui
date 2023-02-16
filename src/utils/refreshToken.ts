@@ -6,7 +6,6 @@ const refreshInterval = 5 * 60 * 1000 - 100;
 const user = useUserStore(store);
 
 export function startRefreshInterval(refreshToken: string) {
-  console.log("starting refresh", refreshInterval);
   setInterval(async () => {
     try {
       console.log("Refreshing");

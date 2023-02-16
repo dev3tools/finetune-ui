@@ -29,6 +29,30 @@ const playground = ref({
   answer: "",
   placeholder: "Answer to you question will show up here",
 });
+const selectedAiModel = ref("");
+
+const aiModels = [
+  {
+    name: "ada",
+    training: "0.0004",
+    usage: "0.0016",
+  },
+  {
+    name: "babbage",
+    training: "0.0006",
+    usage: "0.0024",
+  },
+  {
+    name: "curie",
+    training: "0.0030",
+    usage: "0.0120",
+  },
+  {
+    name: "davinci",
+    training: "0.0300",
+    usage: "0.1200",
+  },
+];
 
 onBeforeMount(() => {
   modelStore.fetchModels();
@@ -43,7 +67,11 @@ async function handleSubmit() {
   }
   loader.show("Saving the model...");
   try {
-    await createModel(selectedDataset.value, modelName.value);
+    await createModel(
+      selectedDataset.value,
+      modelName.value,
+      selectedAiModel.value as "ada" | "babbage" | "curie" | "davinci"
+    );
     toast.success("Model saved");
     modelStore.fetchModels();
     modelName.value = "";
@@ -168,20 +196,27 @@ function closePlayground() {
   selectedModel.value = null;
   openPlaygroundModal.value = false;
 }
+
+function handleOpenCreateModal() {
+  if (!datasetStore.datasets.length) {
+    return toast.error("Create a dataset before proceeding to create a model");
+  }
+  openCreateModal.value = true;
+}
 </script>
 
 <template>
   <div>
     <header>
       <h1>My Models</h1>
-      <button class="create-btn" @click.stop="openCreateModal = true">
+      <button class="create-btn" @click.stop="handleOpenCreateModal">
         Create Model
       </button>
     </header>
     <main>
       <p class="empty-model" v-if="!models.length">
         You don’t have any models yet.
-        <span class="create-model" @click.stop="openCreateModal = true"
+        <span class="create-model" @click.stop="handleOpenCreateModal"
           >Click here to create a new model</span
         >.
       </p>
@@ -249,6 +284,31 @@ function closePlayground() {
                     {{ dataset.name }}
                   </option>
                 </select>
+              </div>
+              <div class="form-group">
+                <label>Select OpenAI Model</label>
+                <div
+                  class="radio"
+                  v-for="aiModel in aiModels"
+                  :key="aiModel.name"
+                >
+                  <input
+                    type="radio"
+                    name="model"
+                    :value="aiModel.name"
+                    v-model="selectedAiModel"
+                    :id="aiModel.name"
+                  /><label
+                    style="text-transform: capitalize"
+                    :for="aiModel.name"
+                    >{{ aiModel.name }}
+                    <span style="font-size: 0.625rem"
+                      >(<strong>Training:</strong> ${{ aiModel.training }}/1K
+                      Tokens, <strong>Usage:</strong> ${{ aiModel.usage }}/1K
+                      Tokens)</span
+                    ></label
+                  >
+                </div>
               </div>
               <div class="buttons">
                 <button
@@ -408,6 +468,18 @@ textarea {
   max-width: 360px;
   overflow-y: auto;
   max-height: calc(100% - 4rem);
+}
+
+.radio {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding-block: 0.25rem;
+}
+
+input[type="radio"] {
+  padding: 0;
+  margin: 0;
 }
 
 .close-icon {
