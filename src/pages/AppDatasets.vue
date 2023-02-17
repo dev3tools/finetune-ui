@@ -134,7 +134,7 @@ async function handleCreate() {
   try {
     await createCSVDataset(data);
     datasetStore.fetchDatasets();
-    toast.error("Dataset created. Now create a model to train the AI");
+    toast.success("Dataset created. Now create a model to train the AI");
     handleCancel();
   } catch (e) {
     toast.error("Something went wrong when creating the dataset. Try again");
