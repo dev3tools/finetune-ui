@@ -241,7 +241,7 @@ watch(
 }
 
 .api-key-modal {
-  background: #f5f5f5;
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
@@ -276,7 +276,7 @@ watch(
 .content {
   flex: 1;
   height: calc(100% - 4rem);
-  background-color: #f5f5f5;
+  background-color: var(--color-bg);
   padding: 2rem;
   margin: auto;
   overflow-y: auto;
@@ -299,7 +299,7 @@ watch(
 }
 
 .logout-btn:hover {
-  background-color: #f5f5f5;
+  background-color: var(--color-bg);
 }
 
 h3 {

@@ -491,7 +491,7 @@ header {
 }
 
 .api-key-modal {
-  background: #f5f5f5;
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
@@ -530,7 +530,7 @@ header {
 }
 
 .create-dataset-modal {
-  background: #f5f5f5;
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
@@ -664,16 +664,16 @@ h4 {
 
 .mapping:hover {
   background-color: #213547;
-  color: #f5f5f5;
+  color: var(--color-bg);
 }
 
 .column-name {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .mapping-id {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   margin-left: 0.25rem;
 }
 

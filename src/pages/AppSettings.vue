@@ -58,7 +58,7 @@ header {
 
 .create-btn {
   border-radius: 10px;
-  border: 2px solid #213547;
+  border: 2px solid var(--color-text);
   display: flex;
   align-items: center;
   height: 2.5rem;
@@ -70,8 +70,8 @@ header {
 }
 
 .create-btn:hover {
-  background-color: #213547;
-  color: #f5f5f5;
+  background-color: var(--color-text);
+  color: var(--color-bg);
 }
 
 form {

@@ -461,7 +461,7 @@ textarea {
 }
 
 .create-model-modal {
-  background: #f5f5f5;
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
@@ -495,7 +495,7 @@ input[type="radio"] {
 
 .playground-modal {
   position: relative;
-  background: #f5f5f5;
+  background: var(--color-bg);
   border-radius: 10px;
   padding: 2rem;
   width: calc(100% - 3rem);
