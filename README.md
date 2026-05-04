@@ -1,4 +1,7 @@
-# Vue 3 + TypeScript + Vite
+# FineTune
+
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/36b7bbf4-8525-4cbb-9612-4c0444353eb6" />
+
 
 This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
